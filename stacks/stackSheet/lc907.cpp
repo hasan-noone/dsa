@@ -1,46 +1,61 @@
-#include <iostream>
+#include <stack>
 #include <vector>
-
+#include <iostream>
 using namespace std;
 
-
-vector<int> findNSE(vector<int> &nums){
-    vector<int> nse(nums.size());
-    stack<int> st;
-    for(int i = nums.size() - 1;i >= 0; i --){
-        while(!st.empty() && nums[st.top()] >= arr[i]){
+vector<int> genPSE(vector<int> &arr) {
+    int n = arr.size();
+    vector<int> pse(n, -1);
+    stack<int> st; // Monotonic increasing stack
+    
+    for (int i = 0; i < n; i++) {
+        while (!st.empty() && arr[st.top()] >= arr[i]) {
             st.pop();
         }
-        nse[i] = st.empty() ? num.size() - 1 : st.top();
-       st.push(i);
+        pse[i] = st.empty() ? -1 : st.top();
+        st.push(i);
+    }
+    return pse;
+}
+
+vector<int> genNSE(vector<int> &arr) {
+    int n = arr.size();
+    vector<int> nse(n, n);
+    stack<int> st; // Monotonic increasing stack
+    
+    for (int i = 0; i < n; i++) {
+        while (!st.empty() && arr[st.top()] > arr[i]) {
+            nse[st.top()] = i;
+            st.pop();
+        }
+        st.push(i);
     }
     return nse;
 }
 
-vector<int> findPSE(vector<int> &nums){
-    vector<int> nse(nums.size());
-}
-int sumSubarrayMinsBrute(vector<int> &arr) {
-    int mini = 0;
+int sumSubarrayMins(vector<int> &arr) {
+    const int MOD = 1e9 + 7;
     int n = arr.size();
-    for (int st = 0; st < n; st++) {
-        int minVal = arr[st]; // Start with the first element of the subarray
+    long long sum = 0;
 
-        for (int end = st; end < n; end++) {
-            minVal = min(minVal, arr[end]); // Update the minimum while expanding
-            mini += minVal;
-        }
+    vector<int> pse = genPSE(arr);
+    vector<int> nse = genNSE(arr);
+
+    for (int i = 0; i < n; i++) {
+        long long left = (i - pse[i]);   // Number of subarrays ending at i
+        long long right = (nse[i] - i);  // Number of subarrays starting at i
+        sum = (sum + (left * right % MOD) * arr[i] % MOD) % MOD;
     }
-    return mini;
-}
-int sumSubarrayMins(vector<int> &arr){
-    int sum = 0;
-
     return sum;
 }
+
 int main() {
-    vector<int> nums = {3, 1, 2, 4};
-    int res = sumSubarrayMinsBrute(nums);
-    cout << res << endl; // Expected output: 17
+    vector<int> arr = {3, 1, 2, 4};
+    vector<int> pse = genPSE(arr);
+    for(int i = 0; i < pse.size(); i+= 1){
+        cout << pse[i] << " ";
+    }
+    cout << endl;
+    cout << sumSubarrayMins(arr) << endl;  // Expected output: 17
     return 0;
 }
